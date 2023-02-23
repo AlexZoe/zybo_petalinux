@@ -6,15 +6,6 @@ Update:<br>
 boot seems to work but device looks for an SD card rootfs.
 How to change to use the one of the TFTP server?
 
-## HW
-
-``
-connect_bd_net [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/FCLK_CLK0]
-
-write_hw_platform -fixed -force  -include_bit -file /home/alex/github_repos/zybo_petalinux/zybo_goes_online_hw/design_1_wrapper.xsa
-```
-
-
 ## Petalinux
 
 ```
@@ -70,4 +61,73 @@ Rename bitstream to:
 Run
 ```
 petalinux-boot --jtag --prebuilt 2
+```
+
+## NFS Rootfs Petalinux
+
+Steps to configure the PetaLinux for NFS boot and build the system image are as follows:
+
+Change to root directory of your PetaLinux project.
+
+```
+$ cd <plnx-proj-root>
+```
+
+Launch the top level system configuration menu.
+
+```
+$ petalinux-config
+```
+
+Menuconfig
+```
+- Image Packaging Configuration
+    -> Root File System Type.
+    Select NFS as the RootFS type.
+    Select Location of NFS root directory and set it to /tftpboot/nfsroot.
+```
+
+Exit menuconfig and save configuration settings. The boot arguments in the auto generated DTSI is automatically updated after the build. You can check <plnx-proj-root>/components/plnx_workspace/device-tree/device-tree/system-conf.dts.
+Launch Kernel configuration menu.
+
+```
+$petalinux-config -c kernel
+```
+
+Menuconfig
+```
+- Select Networking support
+    -> IP: kernel level configuration.
+        IP:DHCP support
+        IP:BOOTP support
+        IP:RARP support
+- Select File systems
+    -> Network file systems > Root file systems on NFS.
+```
+
+Build the system image.
+
+
+## NFS PC Setup
+
+Instructions from [here](https://ubuntu.com/server/docs/service-nfs)
+
+Installation:
+```
+sudo apt install nfs-kernel-server
+```
+
+Start:
+```
+sudo systemctl start nfs-kernel-server.service
+```
+
+Add to /etc/exports
+```
+/tftpboot/nfsroot *(rw,async,no_subtree_check,no_root_squash)
+```
+
+Apply new config
+```
+sudo exportfs -a
 ```
