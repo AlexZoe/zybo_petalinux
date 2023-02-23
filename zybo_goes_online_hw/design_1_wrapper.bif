@@ -1,4 +1,0 @@
-all:
-{
-    ./zybo_goes_online_hw.runs/impl_1/design_1_wrapper.bit
-}
